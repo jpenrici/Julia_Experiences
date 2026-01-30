@@ -1,5 +1,11 @@
 # main.jl
 
+"""
+Code for experimentation and study purposes only.
+Code is not intended to protect against Shell Injection.
+Do not use in administrator mode!
+"""
+
 # Function to scan the shell script for function definitions
 function discover_functions(filepath::String)
     functions = Symbol[]
@@ -35,10 +41,18 @@ macro wrap_sh_functions(file_path)
 
         push!(expr_block.args, quote
               function $julia_func_name(args::String...)
+                  # Validation: Block common shell injection characters
+                  forbidden = ['&', ';', '|', '>', '<', '$', '`']
+                  for arg in args
+                      if any(c -> c in forbidden, arg)
+                          error("Security Alert: Illegal character detected in argument: $arg")
+                      end
+                  end
+
                   # Combine source and function call for bash
-                  full_command = "source " * $abs_path * "; " * $func_str * " " * join(args, " ")
+                  command = "source " * $abs_path * "; " * $func_str * " \"\$@\""
                   @info "Calling Shell Function: $($(func_str))"
-                  run(`bash -c $full_command`)
+                  run(`bash -c $command --BASH $(args)`) # For experimentation purposes only.
               end
               export $julia_func_name
         end)
@@ -61,7 +75,7 @@ if abspath(PROGRAM_FILE) == @__FILE__
     # Test the discovered functions
     try
         sh_hello_user("User")
-        sh_check_space("~")
+        sh_check_space(expanduser("~"))
     catch e
         @warn "Some functions might not have been generated: $e"
     end
