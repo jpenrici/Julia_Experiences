@@ -9,3 +9,5 @@ check_space() {
     echo "Checking directory: $1"
     du -sh "$1"
 }
+
+# This script is for testing purposes only!
