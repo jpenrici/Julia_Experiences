@@ -11,9 +11,9 @@ function install_missing_packages()
         println("--- Checking Dependencies ---")
         for pkg in required
             if haskey(project_deps, pkg)
-                println("[SKIP] $pkg is already installed.")
+                @info "$pkg is already installed."
             else
-                println("[INST] Installing $pkg...")
+                @info "Installing $pkg..."
                 Pkg.add(pkg)
             end
         end

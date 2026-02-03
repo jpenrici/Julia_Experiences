@@ -14,7 +14,7 @@ readonly SCRIPT_FILENAME=$(basename $0)
 readonly TODAY=$(date +%Y-%m-%d)
 readonly NOW=$(date +%Y-%m-%d-%H:%M:%S)
 
-log_info()  { echo -e "${BLUE}[*]${NC} $1"; }
+log_info()  { echo -e "${CYAN}[*]${NC} $1"; }
 log_success() { echo -e "${GREEN}[+]${NC} $1"; }
 log_warn()  { echo -e "${YELLOW}[!]${NC} $1"; }
 log_error() { echo -e "${RED}[Error]${NC} $1" >&2; }
@@ -31,9 +31,9 @@ else
 fi
 
 if pkg-config --exists sdl2; then
-    log_success "SDL found"
+    log_success "SDL2 found."
 else
-    log_warn "SDL not found on the system. Julia can try to download JLL, but it is recommended to have the libraries installed."
+    log_warn "SDL2 not found on the system. Julia can try to download JLL, but it is recommended to have the libraries installed."
 fi
 
 log_info "Synchronizing Julia dependencies..."
