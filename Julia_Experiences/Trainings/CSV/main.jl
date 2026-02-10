@@ -10,26 +10,30 @@ include("src/charCounter.jl")
 using .CharCounterModule
 
 
-function main(input_path::String, output_path::String)
+function test()
 
-    @info "Starting..."
+    config = Dict(
+        "uppercase" => true,
+        "ignore_spaces" => true,
+        "ignore_punctuation" => false
+    )
 
     try
-        process_text_file(input_file, output_file)
-        println("Analysis saved to: $output_file")
+        # By File
+        process_text(FilePath("sample.txt"), FilePath("result_by_file.csv"), config)
+
+        # By Text
+        text = "Hello Julia! Testing special characters: @#\$%^&* (2026)"
+        process_text(Vector{UInt8}(text), FilePath("result_by_uint8.csv"))
+        process_text(text, FilePath("result_by_string.csv"), config)
     catch e
         @error "An error occurred during processing" exception=e
     end
-
-    @info "Finished."
-    
 end
 
 
 if abspath(PROGRAM_FILE) == @__FILE__
-    input_file = "sample.txt"
-    output_file = "result.csv"
-    main(input_file, output_file)
+    test()
 end
 
 # Run - Optional

@@ -1,4 +1,4 @@
-# dependencies.jl
+# script/dependencies.jl
 
 using Pkg
 
@@ -7,6 +7,7 @@ function install_missing_packages()
     try
         counter = 0
         required = ["DataFrames", "CSV"]
+
         if isempty(required)
             @info("List of required dependencies empty!")
             return false
