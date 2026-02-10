@@ -1,0 +1,3 @@
+Hello Julia! Testing special characters: @#$%^&* (2026)
+Hello Julia! Testing special characters: @#$%^&* (2026)
+Hello Julia! Testing special characters: @#$%^&* (2026)
