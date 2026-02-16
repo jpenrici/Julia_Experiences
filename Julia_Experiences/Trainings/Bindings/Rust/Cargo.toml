@@ -1,0 +1,8 @@
+# Cargo.toml
+
+[workspace]
+resolver = "1"
+
+members = [
+    "lib",
+]
