@@ -3,22 +3,13 @@
 # Uses Test.jl for structured assertions
 # Uses Meta.parse + eval to catch macro expansion errors at runtime
 
+using Pkg
+Pkg.activate(".")
+Pkg.instantiate()
+
 include("ImageDSL.jl")
 using .ImageDSL
 using Test
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# WHY Meta.parse + eval FOR MACRO TESTS?
-#
-# Macros expand at parse time — before any try/catch is active.
-# If @apply is called directly in source, a bad call crashes the entire file
-# during loading, not during execution.
-#
-# Meta.parse("@apply ...") keeps the code as a String until eval() is called.
-# At that point, expansion happens inside a controlled runtime context,
-# where @test_throws and try/catch can intercept the error normally.
-# ─────────────────────────────────────────────────────────────────────────────
 
 
 # ─────────────────────────────────────────────
@@ -28,7 +19,10 @@ using Test
 @testset "@apply — single operation" begin
 
     # Valid call — should not throw
-    @test_nowarn @apply blur("input/foto.png", radius = 3, output = "output/blur.png")
+    @test begin
+        @apply blur("input/foto.png", radius = 3, output = "output/blur.png")
+        true
+    end
 
     # Invalid: negative radius — macro should throw at expansion
     @test_throws Exception eval(
@@ -52,12 +46,15 @@ end
 @testset "@pipeline — ordering rules" begin
 
     # Valid pipeline — should not throw
-    @test_nowarn @pipeline :grayscale_blur begin
-        load("input/foto.png")
-        grayscale()
-        blur(radius = 2)
-        resize(width = 800, height = 600)
-        save("output/result.png")
+    @test begin
+        @pipeline :grayscale_blur begin
+            load("input/foto.png")
+            grayscale()
+            blur(radius = 2)
+            resize(width = 800, height = 600)
+            save("output/result.png")
+        end
+        true
     end
 
     # Invalid: save() before last step
@@ -87,18 +84,23 @@ end
 
 @testset "@generated — type specialization" begin
 
-    # load_typed should return a typed struct
-    @test_throws Exception ImageDSL.load_typed("input/foto.png")   # not implemented yet
+    # load_typed returns typed structs — dispatch depends on image color space
+    img_rgb = ImageDSL.load_typed("input/foto.png")
+    img_gray = ImageDSL.load_typed("input/foto_gray.png")
 
-    # These will be meaningful once load_typed is implemented:
-    # img_rgb  = ImageDSL.load_typed("input/rgb.png")
-    # img_gray = ImageDSL.load_typed("input/gray.png")
-    # @test img_rgb  isa ImageDSL.RGBImage
-    # @test img_gray isa ImageDSL.GrayImage
+    @test img_rgb isa ImageDSL.RGBImage
+    @test img_gray isa ImageDSL.GrayImage
 
-    # apply_contrast should specialize per type — no runtime branching
-    # result = ImageDSL.apply_contrast(img_rgb, factor=1.5)
-    # @test result isa ImageDSL.RGBImage
+    # apply_contrast specializes per type — no runtime branching
+    result_rgb = ImageDSL.apply_contrast(img_rgb, factor = 1.5)
+    result_gray = ImageDSL.apply_contrast(img_gray, factor = 1.5)
+
+    @test result_rgb isa ImageDSL.RGBImage
+    @test result_gray isa ImageDSL.GrayImage
+
+    # describe prints which specialization is active
+    ImageDSL.describe(img_rgb)
+    ImageDSL.describe(img_gray)
 
 end
 
@@ -109,16 +111,19 @@ end
 
 @testset "validate() — public contract" begin
 
-    # Valid calls — should return :ok once implemented
-    @test_throws Exception ImageDSL.validate(:blur, radius = 3)         # not implemented yet
-    @test_throws Exception ImageDSL.validate(:resize, width = 800, height = 600)
+    # Valid calls — should return :ok
+    @test ImageDSL.validate(:blur, radius = 3) == :ok
+    @test ImageDSL.validate(:resize, width = 800, height = 600) == :ok
+    @test ImageDSL.validate(:grayscale) == :ok
+
+    # Invalid: negative radius
+    @test_throws Exception ImageDSL.validate(:blur, radius = -1)
+
+    # Invalid: unknown operation
+    @test_throws Exception ImageDSL.validate(:explode)
 
     # Invalid: missing required param
     @test_throws Exception ImageDSL.validate(:resize, width = 800)
-
-    # Once implemented, valid calls should look like:
-    # @test ImageDSL.validate(:blur, radius=3)                    == :ok
-    # @test ImageDSL.validate(:resize, width=800, height=600)     == :ok
 
 end
 
