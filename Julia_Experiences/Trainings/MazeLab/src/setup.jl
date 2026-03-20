@@ -73,7 +73,7 @@ Returns `true` only when all files are present.
 function check_files()::Bool
     # All paths are resolved relative to the directory of this setup file,
     # which is expected to be the same `src/` folder as the other modules.
-    required = ["Maze.jl", "generate.jl", "solve.jl", "render.jl"]
+    required = ["Maze.jl", "generate.jl", "solve.jl", "render.jl", "types.jl"]
 
     for filename in required
         filepath = joinpath(SETUP_DIR, filename)
