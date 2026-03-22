@@ -1,8 +1,6 @@
 # src/Maze.jl
 #
-# Core module of the MazeLab pipeline.
-# Defines all shared types and orchestrates the three pipeline stages:
-#   Generate → Solve → Render
+# Core module — owns the type definitions and orchestrates the pipeline.
 
 module Maze
 
@@ -10,16 +8,25 @@ export CellType, MazeGrid, Position
 export create, save_maze, load_maze
 
 const SRC_DIR = dirname(abspath(@__FILE__))
-include(joinpath(SRC_DIR, "types.jl"));
 
-include(joinpath(SRC_DIR, "generate.jl"));
+# ---------------------------------------------------------------------------
+# Types — included once, owned by this module
+# ---------------------------------------------------------------------------
+
+include(joinpath(SRC_DIR, "types.jl"))
+
+# ---------------------------------------------------------------------------
+# Submodules — receive types via `using ..Maze` declared inside each file
+# ---------------------------------------------------------------------------
+
+include(joinpath(SRC_DIR, "generate.jl"))
 import .Generate
 
-include(joinpath(SRC_DIR, "solve.jl"));
-import .Solver
+# include(joinpath(SRC_DIR, "solve.jl"))
+# import .Solver
 
-include(joinpath(SRC_DIR, "render.jl"));
-import .Render
+# include(joinpath(SRC_DIR, "render.jl"))
+# import .Render
 
 # ---------------------------------------------------------------------------
 # CSV I/O
@@ -32,11 +39,13 @@ Serialises `maze` to a plain CSV file where every character is a cell symbol.
 Each row of the grid becomes one line; cells are comma-separated.
 
 Example output (5 × 5):
-#,#,#,#,#
-#,S,.,.,#
-#,.,#,.,#
-#,.,.,F,#
-#,#,#,#,#
+
+    #,#,#,#,#
+    #,S,.,.,#
+    #,.,#,.,#
+    #,.,.,F,#
+    #,#,#,#,#
+
 """
 function save_maze(maze::MazeGrid, filepath::String)
     open(filepath, "w") do io
@@ -51,8 +60,7 @@ end
 load_maze(filepath) -> MazeGrid
 
 Reads a CSV file produced by `save_maze` and reconstructs a `MazeGrid`.
-Infers rows and cols from the file content.
-Start and finish positions are located by scanning for `S` and `F`.
+Infers dimensions from the file. Locates `Start` and `Finish` by scanning.
 """
 function load_maze(filepath::String)::MazeGrid
     lines = readlines(filepath)
@@ -66,7 +74,6 @@ function load_maze(filepath::String)::MazeGrid
         end
     end
 
-    # Locate start and finish by scanning the grid once.
     start = Position(1, 1)
     finish = Position(rows, cols)
     for r = 1:rows, c = 1:cols
@@ -85,23 +92,34 @@ end
 create(cols, rows, solve, render)
 
 Orchestrates the full MazeLab pipeline:
-1. Build a blank `MazeGrid`
-2. Generate — fill the grid via DFS (delegated to `Generate`)
-3. Save the generated maze to CSV
-4. Solve  — find the shortest path via A* (delegated to `Solver`,  if `solve`)
-5. Render — produce a visual output          (delegated to `Render`, if `render`)
+  1. Build a blank `MazeGrid`
+  2. Generate maze via DFS
+  3. Persist to CSV
+  4. Solve via A*   (if `solve`)
+  5. Render output  (if `render`)
 """
 function create(cols::Int, rows::Int, solve::Bool, render::Bool)
 
+    # Minimum dimension
+    rows < 5 && (@warn "Minimum size is 5×5. Adjusting."; rows = 5)
+    cols < 5 && (@warn "Minimum size is 5×5. Adjusting."; cols = 5)
+
+    # Expected dimensions to accommodate walls and paths.
+    iseven(rows) && (@info "Adjusting rows: $rows → $(rows + 1)"; rows += 1)
+    iseven(cols) && (@info "Adjusting cols: $cols → $(cols + 1)"; cols += 1)
+
     @info "Creating maze ($cols × $rows)  solve=$solve  render=$render"
 
+    # Initialize
     maze = MazeGrid(rows, cols)
 
     # Stage 1 — Generate
     if Generate.run!(maze) === nothing
         @warn "Error generating the maze."
-        return
+        return nothing
     end
+
+    @show maze
 
     # Stage 2 — Persist
     # save_maze(maze, "data/maze.csv")
