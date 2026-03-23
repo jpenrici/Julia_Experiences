@@ -6,6 +6,8 @@
 
 module Generate
 
+using Random
+
 export run!
 
 # This module is an internal component of Maze, not a generic library.
@@ -24,12 +26,12 @@ Returns `true` on success, `false` if the grid is too small to generate.
 function DFS!(maze::MazeGrid)::Bool
     visited = falses(maze.rows, maze.cols)
 
-    directions = (
+    directions = [
         (-2, 0), # North
         (2, 0),  # South
         (0, -2), # West
         (0, 2),  # East
-    )
+    ]
 
     function walk!(r, c)
         !visited[r, c] || return
@@ -82,15 +84,14 @@ function run!(maze::MazeGrid)::Union{MazeGrid,Nothing}
         [Position(maze.rows, c) for c = 1:maze.cols if maze.grid[maze.rows, c] == Path],
         [Position(r, maze.cols) for r = 1:maze.rows if maze.grid[r, maze.cols] == Path],
     )
+    filter!(p -> p != maze.start, borders)
     isempty(borders) && return nothing
     maze.finish = rand(borders)
+    println(borders)
     for p in borders
         p != maze.finish && (maze.grid[p.row, p.col] = Wall)
     end
     maze.grid[maze.finish.row, maze.finish.col] = Finish
-
-    # Show MazeGrid
-    @show maze
 
     return maze
 end

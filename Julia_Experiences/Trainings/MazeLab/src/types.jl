@@ -55,6 +55,10 @@ struct Position
     col::Int
 end
 
+Base.:(==)(a::Position, b::Position) = a.row == b.row && a.col == b.col
+
+Base.show(io::IO, p::Position) = print(io, "($(p.row), $(p.col))")
+
 # ---------------------------------------------------------------------------
 # MazeGrid — central data structure
 # ---------------------------------------------------------------------------
@@ -93,4 +97,11 @@ function MazeGrid(rows::Int, cols::Int)
     return MazeGrid(grid, rows, cols, start, finish)
 end
 
-Base.showerror(io::IO, maze::MazeGrid) = println ("# TO DO")
+function Base.show(io::IO, maze::MazeGrid)
+    println(io, "MazeGrid $(maze.rows)×$(maze.cols)")
+    for row in eachrow(maze.grid)
+        println(io, join((CELL_CHAR[c] for c in row), " "))
+    end
+    println(io, "Start:  $(maze.start)")
+    println(io, "Finish: $(maze.finish)")
+end

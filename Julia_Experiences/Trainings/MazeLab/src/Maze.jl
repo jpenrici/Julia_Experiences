@@ -119,6 +119,7 @@ function create(cols::Int, rows::Int, solve::Bool, render::Bool)
         return nothing
     end
 
+    # Show MazeGrid
     @show maze
 
     # Stage 2 — Persist
