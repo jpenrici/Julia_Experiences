@@ -55,6 +55,8 @@ struct Position
     col::Int
 end
 
+manhattan(a::Position, b::Position) = abs(a.row - b.row) + abs(a.col - b.col)
+
 Base.:(==)(a::Position, b::Position) = a.row == b.row && a.col == b.col
 
 Base.show(io::IO, p::Position) = print(io, "($(p.row), $(p.col))")

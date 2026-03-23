@@ -119,8 +119,8 @@ function create(cols::Int, rows::Int, solve::Bool, render::Bool)
         return nothing
     end
 
-    # Show MazeGrid - debug manual
-    # @show maze
+    # Show MazeGrid - Debug
+    @show maze
 
     # Stage 2 — Persist
     # save_maze(maze, "data/maze.csv")
