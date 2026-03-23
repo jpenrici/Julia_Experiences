@@ -68,31 +68,20 @@ Runs the maze generator. Modifies `maze` in place and returns it.
 Returns `nothing` if generation fails.
 """
 function run!(maze::MazeGrid)::Union{MazeGrid,Nothing}
-    # Start point
-    coin = rand(Bool)
-    door = coin ? rand(1:2:maze.cols) : rand(1:2:maze.rows)
-    maze.start = coin ? Position(1, door) : Position(door, 1)
-    maze.grid[maze.start.row, maze.start.col] = Start
-
-    # Searching
+    maze.grid[maze.start.row, maze.start.col] = Path
     DFS!(maze) || return nothing
-
-    # Finish point
     borders = vcat(
-        [Position(1, c) for c = 1:maze.cols if maze.grid[1, c] == Path],
         [Position(r, 1) for r = 1:maze.rows if maze.grid[r, 1] == Path],
-        [Position(maze.rows, c) for c = 1:maze.cols if maze.grid[maze.rows, c] == Path],
+        [Position(1, c) for c = 1:maze.cols if maze.grid[1, c] == Path],
         [Position(r, maze.cols) for r = 1:maze.rows if maze.grid[r, maze.cols] == Path],
+        [Position(maze.rows, c) for c = 1:maze.cols if maze.grid[maze.rows, c] == Path],
     )
-    filter!(p -> p != maze.start, borders)
-    isempty(borders) && return nothing
+    maze.start = rand(borders)
     maze.finish = rand(borders)
-    println(borders)
-    for p in borders
-        p != maze.finish && (maze.grid[p.row, p.col] = Wall)
-    end
+    maze.grid[maze.start.row, maze.start.col] = Start
     maze.grid[maze.finish.row, maze.finish.col] = Finish
 
+    @show maze # Debug
     return maze
 end
 
