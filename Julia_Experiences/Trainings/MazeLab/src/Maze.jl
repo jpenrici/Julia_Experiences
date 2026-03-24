@@ -22,8 +22,8 @@ include(joinpath(SRC_DIR, "types.jl"))
 include(joinpath(SRC_DIR, "generate.jl"))
 import .Generate
 
-# include(joinpath(SRC_DIR, "solve.jl"))
-# import .Solver
+include(joinpath(SRC_DIR, "solve.jl"))
+import .Solver
 
 # include(joinpath(SRC_DIR, "render.jl"))
 # import .Render
@@ -48,12 +48,17 @@ Example output (5 × 5):
 
 """
 function save_maze(maze::MazeGrid, filepath::String)
-    open(filepath, "w") do io
-        for row in eachrow(maze.grid)
-            println(io, join((CELL_CHAR[c] for c in row), ","))
+
+    try
+        open(filepath, "w") do io
+            for row in eachrow(maze.grid)
+                println(io, join((CELL_CHAR[c] for c in row), ","))
+            end
         end
+        @info "Maze saved to $filepath"
+    catch e
+        @warn "Cannot save to '$filepath': $e"
     end
-    @info "Maze saved to $filepath"
 end
 
 """
@@ -119,17 +124,31 @@ function create(cols::Int, rows::Int, solve::Bool, render::Bool)
         return nothing
     end
 
-    # Show MazeGrid - Debug
-    @show maze
-
     # Stage 2 — Persist
-    # save_maze(maze, "data/maze.csv")
 
-    # Stage 3 — Solve (optional)
-    # solve && Solver.run!(maze)
+    # Save
+    filepath = "../output/maze.csv"
+    save_maze(maze, filepath)
+
+    # Load (Optional Test)
+    maze == load_maze(filepath) ||
+        @warn "Different MazeGrids. Change detected in the CSV file."
+
+    # Stage 3 — Solve (Optional)
+    if solve
+        if Solver.run!(maze) === nothing
+            @warn "The pathfinding process failed!"
+        else
+            # Save
+            save_maze(maze, replace(filepath, ".csv" => "_solution.csv"))
+        end
+    end
 
     # Stage 4 — Render (optional)
     # render && Render.run(maze)
+
+    # Show MazeGrid - Debug
+    @show maze
 
     return maze
 end

@@ -55,6 +55,11 @@ struct Position
     col::Int
 end
 
+"""
+manhattan(Position, Position)
+
+Manhattan distance between the starting point and the finishing point.
+"""
 manhattan(a::Position, b::Position) = abs(a.row - b.row) + abs(a.col - b.col)
 
 Base.:(==)(a::Position, b::Position) = a.row == b.row && a.col == b.col
@@ -99,6 +104,11 @@ function MazeGrid(rows::Int, cols::Int)
     return MazeGrid(grid, rows, cols, start, finish)
 end
 
+isvalid(row::Int, col::Int, maze::MazeGrid) =
+    row >= 1 && row <= maze.rows && col >= 1 && col <= maze.cols
+
+isvalid(p::Position, maze::MazeGrid) = isvalid(p.row, p.col, maze)
+
 function Base.show(io::IO, maze::MazeGrid)
     println(io, "MazeGrid $(maze.rows)×$(maze.cols)")
     for row in eachrow(maze.grid)
@@ -106,4 +116,13 @@ function Base.show(io::IO, maze::MazeGrid)
     end
     println(io, "Start:  $(maze.start)")
     println(io, "Finish: $(maze.finish)")
+end
+
+function Base.:(==)(a::MazeGrid, b::MazeGrid)
+    grid = a.grid == b.grid
+    rows = a.rows == b.rows
+    cols = a.cols == b.cols
+    start = a.start == b.start
+    finish = a.finish == b.finish
+    return grid && rows && cols && start && finish
 end

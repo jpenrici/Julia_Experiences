@@ -11,7 +11,7 @@ using Random
 export run!
 
 # This module is an internal component of Maze, not a generic library.
-using ..Maze: MazeGrid, Position, CellType, Wall, Path, Start, Finish, manhattan
+using ..Maze: MazeGrid, Position, CellType, Wall, Path, Start, Finish, manhattan, isvalid
 
 # ---------------------------------------------------------------------------
 # Internal — DFS backtracker
@@ -24,7 +24,6 @@ Fills `maze.grid` using a depth-first search backtracker.
 Returns `true` on success, `false` if the grid is too small to generate.
 """
 function DFS!(maze::MazeGrid)::Bool
-    visited = falses(maze.rows, maze.cols)
 
     directions = [
         (-2, 0), # North
@@ -33,18 +32,15 @@ function DFS!(maze::MazeGrid)::Bool
         (0, 2),  # East
     ]
 
+    visited = falses(maze.rows, maze.cols)
+
     function walk!(r, c)
         !visited[r, c] || return
         visited[r, c] = true
         for (dr, dc) in shuffle(directions)
             nr = r + dr # new row
             nc = c + dc # new col
-            if nr >= 1 &&
-               nr <= maze.rows &&
-               nc >= 1 &&
-               nc <= maze.cols &&
-               !visited[nr, nc] &&
-               maze.grid[nr, nc] == Wall
+            if isvalid(nr, nc, maze) && !visited[nr, nc] && maze.grid[nr, nc] == Wall
                 maze.grid[r+dr÷2, c+dc÷2] = Path
                 maze.grid[nr, nc] = Path
                 walk!(nr, nc)

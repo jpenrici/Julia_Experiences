@@ -60,6 +60,8 @@ function help()
     --solve     Run the pathfinder after generation
     --image     Render the maze to an image after generation
 
+    --help      It shows the construction of the arguments
+
     Examples:
     julia run.jl w=30 h=40 --solve
     julia run.jl width=30 height=40 --image
@@ -110,6 +112,10 @@ function parse_args(args)
 
         elseif key == "--image"
             render = true
+
+        elseif key == "--help"
+            help()
+            exit(0)
         end
     end
 
