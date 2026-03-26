@@ -41,6 +41,15 @@ const CELL_CHAR = Dict{CellType,Char}(
 # Reverse map: CSV character → CellType (derived automatically).
 const CHAR_CELL = Dict{Char,CellType}(v => k for (k, v) in CELL_CHAR)
 
+# Maps each CellType to its Color
+const CELL_COLOR = Dict{CellType,String}(
+    Wall => "#1a3a5c",
+    Path => "#d6e8f7",
+    Start => "#00b894",
+    Finish => "#fdcb6e",
+    Solution => "#ff7675",
+)
+
 # ---------------------------------------------------------------------------
 # Position — immutable (row, col) coordinate
 # ---------------------------------------------------------------------------
@@ -125,4 +134,23 @@ function Base.:(==)(a::MazeGrid, b::MazeGrid)
     start = a.start == b.start
     finish = a.finish == b.finish
     return grid && rows && cols && start && finish
+end
+
+# ---------------------------------------------------------------------------
+# Display — render structure
+# ---------------------------------------------------------------------------
+
+"""
+Display
+"""
+struct Display
+    width::Int
+    height::Int
+    title::String
+    cell_size::Int
+end
+
+function Display(maze::MazeGrid; width = 800, height = 800, title = "MazeLab")
+    cell_size = min(width ÷ (maze.cols + 2), height ÷ (maze.rows + 2))
+    return Display(width, height, title, cell_size)
 end

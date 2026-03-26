@@ -5,7 +5,8 @@ module Solver
 export run!
 
 # This module is an internal component of Maze, not a generic library.
-using ..Maze: MazeGrid, Position, CellType, Wall, Path, Start, Finish, Solution, manhattan, isvalid
+using ..Maze:
+    MazeGrid, Position, CellType, Wall, Path, Start, Finish, Solution, manhattan, isvalid
 
 # ---------------------------------------------------------------------------
 # Internal — A* pathfinding algorithm

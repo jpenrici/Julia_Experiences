@@ -29,7 +29,7 @@ Returns `true` on success, `false` if any error occurs.
 """
 function install_missing_packages()::Bool
     try
-        required = String[]
+        required = String["Colors", "Images"]
 
         if isempty(required)
             @info "No external packages required at this stage."

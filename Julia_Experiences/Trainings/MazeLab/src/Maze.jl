@@ -4,7 +4,7 @@
 
 module Maze
 
-export CellType, MazeGrid, Position
+export CellType, MazeGrid, Position, Display
 export create, save_maze, load_maze
 
 const SRC_DIR = dirname(abspath(@__FILE__))
@@ -25,8 +25,8 @@ import .Generate
 include(joinpath(SRC_DIR, "solve.jl"))
 import .Solver
 
-# include(joinpath(SRC_DIR, "render.jl"))
-# import .Render
+include(joinpath(SRC_DIR, "render.jl"))
+import .Render
 
 # ---------------------------------------------------------------------------
 # CSV I/O
@@ -145,7 +145,7 @@ function create(cols::Int, rows::Int, solve::Bool, render::Bool)
     end
 
     # Stage 4 — Render (optional)
-    # render && Render.run(maze)
+    render && Render.run(maze)
 
     # Show MazeGrid - Debug
     @show maze
